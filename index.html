@@ -94,6 +94,19 @@ p{line-height:1.5;margin:0}
 .pips i{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--leaf);transition:background .5s}
 .pips i.f{background:var(--leaf-d);border-color:var(--leaf-d)}
 .pips.bit i.f{background:var(--accent);border-color:var(--accent)}
+.sense{margin-bottom:12px;animation:fade .6s ease}
+.sense small{display:block;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--leaf-d);margin-bottom:6px}
+.sense p{font-size:16px;line-height:1.5}
+.sense .chips{margin:0;justify-content:flex-start}
+.sense .hl{color:var(--mute);font-size:13px;margin-top:8px}
+.wheel{width:100%;max-width:340px;display:block;margin:0 auto}
+.moods{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 8px}
+.mood{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.mood[aria-pressed=true]{border-color:var(--leaf-d);background:#e9f0e6}
+.deli{text-align:center}
+.deli small{display:block;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--leaf-d)}
+.deli b{display:block;font-weight:400;font-size:22px;margin:4px 0}
+.deli p{font-size:14px;color:#56635a}
 .spacer{flex:1;min-height:12px}
 .stick{position:sticky;bottom:0;padding-top:10px;background:linear-gradient(transparent,var(--bg) 35%)}
 
@@ -103,6 +116,7 @@ p{line-height:1.5;margin:0}
 .ing b{font-weight:400;font-size:17px;display:flex;align-items:center;gap:8px}
 .ing span{font-size:13px;color:#56635a;line-height:1.35}
 .ing .sw{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.15);flex:none}
+.grid .ing:last-child:nth-child(odd){grid-column:span 2;min-height:0}
 .ing[aria-pressed=true]{border-color:var(--leaf-d);background:#e9f0e6;box-shadow:inset 0 0 0 1.5px var(--leaf-d)}
 #guess-msg{text-align:center;color:var(--mute);font-size:14px;min-height:20px}
 
@@ -125,6 +139,7 @@ p{line-height:1.5;margin:0}
 .rv.miss{border-style:dashed}
 .rv.bad{border-color:var(--accent);color:var(--accent);text-decoration:line-through}
 .fact{font-size:14px;color:#56635a;text-align:center;margin:14px 6px 4px}
+.fact+.fact{margin-top:10px}
 .fact b{color:var(--leaf-d);font-weight:400;letter-spacing:.1em;text-transform:uppercase;font-size:11.5px;display:block;margin-bottom:3px}
 @media (max-height:640px){h1{font-size:26px}.enso{width:110px;height:110px}}
 @media (prefers-reduced-motion:reduce){.wisp,.enso circle{animation:none}.screen.active{animation:none}}
@@ -159,11 +174,11 @@ p{line-height:1.5;margin:0}
         <h1>brew your own tea</h1>
         <p class="sub" style="margin-top:6px">a green tea brewing game</p>
       </div>
-      <p style="max-width:330px;color:#46544b;font-size:15px">Brew a cup slowly and carefully. Then use its color and taste to work out what is in the blend.</p>
+      <p style="max-width:330px;color:#46544b;font-size:15px">Brew a cup slowly and carefully. Then use your senses to find its flavors. Green tea can be healthy and delicious.</p>
       <div class="tiers" id="tiers">
-        <button class="tier" data-tier="1"><div><b>Gentle</b><span>1 ingredient · guides shown</span></div><em id="best1"></em></button>
-        <button class="tier" data-tier="2"><div><b>Mindful</b><span>2 ingredients · tips only</span></div><em id="best2"></em></button>
-        <button class="tier" data-tier="3"><div><b>Master</b><span>3 ingredients · no guides</span></div><em id="best3"></em></button>
+        <button class="tier" data-tier="1"><div><b>Gentle</b><span>1 main flavor · guides shown</span></div><em id="best1"></em></button>
+        <button class="tier" data-tier="2"><div><b>Mindful</b><span>2 main flavors · tips only</span></div><em id="best2"></em></button>
+        <button class="tier" data-tier="3"><div><b>Master</b><span>3 main flavors · no guides</span></div><em id="best3"></em></button>
       </div>
       <p class="tiny">Best with sound on 🔊</p>
     </section>
@@ -254,17 +269,15 @@ p{line-height:1.5;margin:0}
         <ellipse cx="78" cy="72" rx="26" ry="11" fill="#fff" opacity=".22" transform="rotate(-30 78 72)"/>
       </svg>
       <h2 style="text-align:center">Your tea</h2>
-      <p class="sub" style="text-align:center;margin-bottom:12px">Color profile</p>
-      <div class="chips" id="chips"></div>
-      <div class="card" id="tastes"></div>
-      <p style="text-align:center;color:var(--mute);font-size:14px;margin-top:12px" id="obs-note"></p>
+      <p class="sub" style="text-align:center;margin-bottom:14px;letter-spacing:0" id="obs-note"></p>
+      <div id="obs-cards"></div>
       <div class="spacer"></div>
-      <div class="stick"><button class="btn" style="width:100%" id="btn-guess">Make my guess</button></div>
+      <div class="stick"><button class="btn" style="width:100%" id="btn-guess">Smell the tea</button></div>
     </section>
 
     <!-- GUESS -->
     <section id="screen-guess" class="screen">
-      <h2 id="guess-h" style="text-align:center">What is in the blend?</h2>
+      <h2 id="guess-h" style="text-align:center">Which flavors do you taste?</h2>
       <p class="sub" id="guess-sub" style="text-align:center"></p>
       <div class="grid" id="grid"></div>
       <p id="guess-msg"></p>
@@ -280,10 +293,23 @@ p{line-height:1.5;margin:0}
       </div>
       <div class="leaves" id="r-leaves"></div>
       <div class="haiku" id="r-haiku"></div>
-      <div class="card" id="r-rows"></div>
-      <h2 style="margin-top:16px;text-align:center;font-size:18px">The blend was</h2>
+      <div class="card deli" id="r-deli"></div>
+      <div class="card" id="r-rows" style="margin-top:12px"></div>
+      <h2 style="margin-top:16px;text-align:center;font-size:18px">The main flavors were</h2>
       <div class="reveal" id="r-reveal" style="justify-content:center"></div>
-      <div class="fact" id="r-fact"></div>
+      <div class="card" style="margin-top:16px">
+        <h2 style="font-size:18px;margin:0">How do you feel?</h2>
+        <p class="sub" style="font-size:13.5px;letter-spacing:0">Take a slow breath and notice. There is no right answer.</p>
+        <div class="moods" id="moods">
+          <button class="mood" data-m="calm" aria-pressed="false">Calm</button>
+          <button class="mood" data-m="relaxed" aria-pressed="false">Relaxed</button>
+          <button class="mood" data-m="focused" aria-pressed="false">Focused</button>
+          <button class="mood" data-m="energized" aria-pressed="false">Energized</button>
+          <button class="mood" data-m="unsure" aria-pressed="false">Not sure yet</button>
+        </div>
+        <p id="mood-msg" style="font-size:14px;color:#46544b;min-height:20px"></p>
+      </div>
+      <div id="r-fact"></div>
       <div class="spacer"></div>
       <div class="row">
         <button class="btn ghost" id="btn-menu">Change level</button>
@@ -308,30 +334,52 @@ const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},se
 
 /* ---------- data ---------- */
 const WATER=[232,238,226];
+const GREEN=[150,188,95];
 const AMBER=[169,112,31];
 const IDEAL={temp:[70,80],time:[45,75],dose:[2,3],level:[.65,.8]};
-const AXES=[['grassy','Grassy'],['sweet','Sweet / savory'],['floral','Floral'],['toasty','Toasty'],['fresh','Cool / minty'],['tart','Citrus tart'],['bitter','Bitter']];
-const ING=[
-  {id:'sencha',name:'Sencha',rgb:[155,191,90],taste:{grassy:.9,sweet:.35,fresh:.3},guide:'Fresh-cut grass with a hint of the sea.',color:'bright yellow-green'},
-  {id:'gyokuro',name:'Gyokuro',rgb:[104,156,74],taste:{sweet:.95,grassy:.5,fresh:.15},guide:'Very sweet and savory, like a light broth.',color:'deep jade green'},
-  {id:'genmai',name:'Genmaicha',rgb:[206,196,96],taste:{toasty:.9,grassy:.35,sweet:.25},guide:'Toasted rice, a bit like popcorn.',color:'golden green'},
-  {id:'hoji',name:'Hojicha',rgb:[176,122,69],taste:{toasty:1,sweet:.5},guide:'Roasted and smoky, with caramel.',color:'amber brown'},
-  {id:'jasmine',name:'Jasmine',rgb:[232,226,138],taste:{floral:1,sweet:.4,grassy:.15},guide:'Flowery, like a perfume.',color:'pale yellow'},
-  {id:'mint',name:'Mint',rgb:[190,226,196],taste:{fresh:1,grassy:.2},guide:'Cool and sharp, tingles a little.',color:'clear, pale green'},
-  {id:'lemon',name:'Lemon peel',rgb:[240,229,138],taste:{tart:1,fresh:.35},guide:'Bright and sour.',color:'light yellow'},
-  {id:'matcha',name:'Matcha',rgb:[84,135,56],taste:{grassy:.55,sweet:.65},guide:'Rich and creamy. Thick, never see-through.',color:'vivid emerald, cloudy'}
+/* the tasting wheel: same ten notes as the tasting card, in the same order around the circle */
+const WHEEL=['floral','grassy','herbal','nutty','bitter','umami','spicy','refreshing','sweet','berry'];
+const NOTES=[
+  {id:'nutty',name:'Nutty',tint:[190,150,80],hint:'Toasted seeds, almonds or roasted grain.',look:'golden to light amber',aroma:'toasted nuts'},
+  {id:'herbal',name:'Herbal',tint:[118,150,70],hint:'Like fresh herbs or an herbal tea.',look:'olive green',aroma:'fresh herbs'},
+  {id:'grassy',name:'Grassy',tint:[140,192,80],hint:'Fresh-cut grass and young leaves.',look:'bright green',aroma:'fresh-cut grass'},
+  {id:'floral',name:'Floral',tint:[226,220,130],hint:'Flower blossoms, almost like perfume.',look:'pale yellow-green',aroma:'flower blossoms'},
+  {id:'berry',name:'Berry',tint:[200,150,105],hint:'Sweet-tart fruit, like berries.',look:'warm amber',aroma:'ripe berries'},
+  {id:'sweet',name:'Sweet',tint:[125,172,100],hint:'A natural sweetness, like honey or sweet corn.',look:'soft green',aroma:'a gentle sweetness'},
+  {id:'refreshing',name:'Refreshing',tint:[190,226,200],hint:'Cool, clean and crisp, like fresh air.',look:'clear and pale',aroma:'cool, clean air'},
+  {id:'spicy',name:'Spicy',tint:[212,172,72],hint:'A warm tingle, like a touch of pepper.',look:'golden',aroma:'warm pepper'},
+  {id:'umami',name:'Umami',tint:[92,150,76],hint:'Savory and brothy, like seaweed.',look:'deep green',aroma:'savory seaweed broth'}
 ];
-const FACTS=[
-  'Green tea leaves are heated soon after picking (steamed in Japan, pan-fired in China). That stops them from turning brown.',
-  'Tea contains L-theanine, an amino acid linked to feeling calm and focused. Cooler water brings out more of it.',
-  'Catechins are the compounds that make tea taste bitter and dry. Hot water pulls out lots of them.',
-  'Gyokuro is shaded for about three weeks before picking. The shade makes the leaves sweeter.',
-  'Matcha is the whole leaf ground to powder, so you drink the leaf instead of just steeping it.',
-  'Hojicha is green tea that has been roasted. That turns it brown and gives it a toasty flavor.',
-  'Good green tea can be steeped 2 or 3 times. Each cup tastes a little different.',
-  'Green, black and oolong tea all come from one plant, Camellia sinensis. The difference is how the leaves are processed.',
-  'Jasmine tea is made by layering tea leaves with fresh jasmine blossoms so the leaves soak up the scent.'
+const NOTE=Object.fromEntries(NOTES.map(n=>[n.id,n]));
+const WHEEL_NAME=Object.fromEntries(WHEEL.map(id=>[id,id==='bitter'?'Bitter':NOTE[id].name]));
+const DELICATE=['sweet','floral','refreshing','berry','umami'];
+function makeTea(n){
+  const dom=shuffle(NOTES).slice(0,n), prof={bitter:0};
+  NOTES.forEach(x=>prof[x.id]=Math.random()*.18);
+  dom.forEach(x=>prof[x.id]=.72+Math.random()*.28);
+  return{dom,prof};
+}
+const FARM=[
+  'Wild Orchard’s farm is the world’s first regenerative organic certified green tea farm.',
+  'Wild Orchard’s green tea trees are grown from seed.',
+  'Wild Orchard’s green tea is grown without pesticides or fertilizers.',
+  'After harvest, Wild Orchard washes the green tea leaves four times.'
 ];
+const HEALTH=[
+  'Green tea can help keep you calm and ease stress and anxiety.',
+  'Green tea can improve concentration and provide mental clarity.',
+  'Green tea’s caffeine comes on gently and lasts longer than coffee’s quick spike, so the energy feels steadier.',
+  'Green tea may help strengthen the immune system and fight inflammation.',
+  'Green tea may help control blood sugar and lower blood pressure.',
+  'Green tea can aid digestion.'
+];
+const MOOD_MSG={
+  calm:'Notice that. Slow pouring and slow breathing may play a part, and green tea is known for helping people feel calm.',
+  relaxed:'Notice that. Slow pouring and slow breathing may play a part, and green tea is known for helping people feel calm.',
+  focused:'Green tea can help with concentration and mental clarity. Notice how your mind feels right now.',
+  energized:'Green tea has some caffeine, but it comes on gently and lasts longer than the quick spike from coffee.',
+  unsure:'That is okay. Feelings can take a minute to show up. Take one more slow breath.'
+};
 
 /* ---------- sound (all generated, no files) ---------- */
 const Snd=(()=>{
@@ -399,31 +447,56 @@ const Snd=(()=>{
 
 /* ---------- brew model ---------- */
 const bandScore=(v,[lo,hi],tol)=>Math.max(0,1-(v<lo?lo-v:v>hi?v-hi:0)/tol);
-function brewLook(temp,leaves,t,level,blend){
+function brewLook(temp,leaves,t,level,tea){
   const dose=leaves*.72/Math.max(.3,level||.72);            // leaf-to-water concentration
   const heat=clamp((temp-30)/50,0,1.3);
   const strength=clamp(Math.pow(Math.max(dose,.05)/2.5,.6)*(1-Math.exp(-t/35))*(.55+.45*heat)/.85,0,1);
   const over=clamp(Math.max(0,(temp-80)/20)*.5+Math.max(0,(t-75)/60)*.6+Math.max(0,(dose-3)/2)*.4,0,1);
-  const base=blend.reduce((a,b)=>[a[0]+b.rgb[0]/blend.length,a[1]+b.rgb[1]/blend.length,a[2]+b.rgb[2]/blend.length],[0,0,0]).map(Math.round);
+  const w=tea.dom.map(d=>tea.prof[d.id]), sum=w.reduce((a,b)=>a+b,0);
+  const tint=[0,1,2].map(i=>Math.round(tea.dom.reduce((acc,d,k)=>acc+d.tint[i]*w[k],0)/sum));
+  const base=mix(GREEN,tint,.6);
   const color=mix(mix(WATER,base,strength),AMBER,over*.7);
-  const matcha=blend.some(b=>b.id==='matcha');
-  return{strength,over,color,cloudy:matcha||over>.55,slightly:over>.3};
+  return{strength,over,color,cloudy:over>.55,slightly:over>.3};
 }
-function tasteOf(blend,look){
-  const scale=1/(1+.25*(blend.length-1)), mute=.3+.7*look.strength, delicate=1-.45*look.over;
-  return AXES.map(([k])=>{
+function tasteOf(tea,look){   // values 0..1, in WHEEL order
+  const mute=.3+.7*look.strength, delicate=1-.45*look.over;
+  return WHEEL.map(k=>{
     if(k==='bitter') return clamp(.08+look.over*.95);
-    let v=clamp(blend.reduce((s,b)=>s+(b.taste[k]||0),0)*scale)*mute;
-    if(k==='sweet'||k==='floral'||k==='fresh') v*=delicate;
-    return v;
+    return tea.prof[k]*mute*(DELICATE.includes(k)?delicate:1);
   });
 }
-function hsl([r,g,b]){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,l=(mx+mn)/2;let h=0;
+function aromaText(tea,look){
+  const mute=.3+.7*look.strength, delicate=1-.45*look.over;
+  const top=NOTES.map(n=>[n,tea.prof[n.id]*mute*(DELICATE.includes(n.id)?delicate:1)]).sort((a,b)=>b[1]-a[1]).filter(x=>x[1]>=.28).slice(0,2);
+  if(!top.length) return 'Almost no smell. The flavor has not come out of the leaves yet.';
+  const inten=look.strength<.35?'A very faint':look.strength<.7?'A gentle':'A clear';
+  return `${inten} smell of ${top.map(x=>x[0].aroma).join(' and ')}.`+(look.over>.4?' There is a sharp, harsh edge.':'');
+}
+function feelText(tea,look){
+  if(look.over>=.3) return 'Dry and puckery, as if it pulls the moisture from your tongue. This is called astringency.';
+  if(look.strength<.35) return 'Thin and watery, with very little body.';
+  if(tea.prof.umami>=.7&&look.strength>=.5) return 'Silky and brothy, coating your tongue.';
+  return look.strength<.7?'Light and smooth.':'Smooth, with a rounder, fuller body.';
+}
+function hsl([r,g,b]){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),d=mx-Math.min(r,g,b);let h=0;
   if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return h;}
 function hueName(c){
   if(Math.max(...c)-Math.min(...c)<22) return 'nearly colorless';
   const h=hsl(c);
   return h<42?'amber brown':h<56?'golden':h<72?'yellow-green':h<95?'fresh green':h<150?'jade green':'blue-green';
+}
+function wheelSVG(levels){   // levels 0..4 in WHEEL order, matching the card's four rings
+  const cx=170,cy=165,R=100,pt=(i,r)=>[cx+r*Math.cos(i*Math.PI/5),cy-r*Math.sin(i*Math.PI/5)];
+  let o=`<svg class="wheel" viewBox="0 0 340 330" role="img" aria-label="Taste wheel">`;
+  for(let k=1;k<=4;k++) o+=`<circle cx="${cx}" cy="${cy}" r="${R*k/4}" fill="none" stroke="#cdd9c8" stroke-width="${k===4?1.6:1}"/>`;
+  WHEEL.forEach((id,i)=>{const[x,y]=pt(i,R);o+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#cdd9c8"/>`;});
+  o+=`<polygon points="${levels.map((l,i)=>pt(i,R*l/4).map(n=>n.toFixed(1)).join(',')).join(' ')}" fill="rgba(79,111,90,.3)" stroke="#4f6f5a" stroke-width="2" stroke-linejoin="round"/>`;
+  levels.forEach((l,i)=>{if(l>0){const[x,y]=pt(i,R*l/4);o+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="${WHEEL[i]==='bitter'?'#c4764a':'#4f6f5a'}"/>`;}});
+  WHEEL.forEach((id,i)=>{
+    const[x,y]=pt(i,R+16),c=Math.cos(i*Math.PI/5),sn=Math.sin(i*Math.PI/5);
+    o+=`<text x="${x.toFixed(1)}" y="${(y+(sn>.5?-2:sn<-.5?10:4)).toFixed(1)}" text-anchor="${c>.35?'start':c<-.35?'end':'middle'}" font-size="13" fill="${id==='bitter'?'#c4764a':'#2d3a32'}">${WHEEL_NAME[id]}</text>`;
+  });
+  return o+'</svg>';
 }
 
 /* ---------- state ---------- */
@@ -555,7 +628,7 @@ function update(dt,ts){
     drawCup(ts);
   }else if(S.step===3){
     S.steepT+=dt*SPEED;
-    const look=brewLook(S.temp,S.leaves,S.steepT,S.level,S.blend);
+    const look=brewLook(S.temp,S.leaves,S.steepT,S.level,S.tea);
     const w=$('#water'); w.setAttribute('fill',rgb(look.color)); w.setAttribute('opacity','.92');
     $('#cup-steam').style.opacity=clamp((S.temp-40)/50)*clamp(1-S.steepT/150,.15,1);
     const ph=(ts/1000%8)/8, ring=$('#ring');
@@ -568,39 +641,51 @@ function update(dt,ts){
 function frame(ts){ const dt=Math.min(.05,(ts-last)/1000||0); last=ts; update(dt,ts); requestAnimationFrame(frame); }
 requestAnimationFrame(frame);
 
-/* ---------- observe ---------- */
+/* ---------- observe: smell, look, feel, taste ---------- */
+let obsStage=0;
+const OBS_LABELS=['Smell the tea','Look at the color','Notice how it feels','Taste it','Make my guess'];
 function toObserve(){
-  S.look=brewLook(S.temp,S.leaves,S.steepT,S.level,S.blend);
-  const L=S.look; Snd.bell(587.33);
-  setDots(4); show('observe');
-  const c=L.color;
+  S.look=brewLook(S.temp,S.leaves,S.steepT,S.level,S.tea);
+  Snd.bell(587.33); setDots(4); show('observe');
+  const c=S.look.color;
   $('#tg0').setAttribute('stop-color',rgb(mix(c,[255,255,255],.14)));
   $('#tg1').setAttribute('stop-color',rgb(mix(c,[0,0,0],.08)));
-  $('#obs-cloud').setAttribute('opacity',L.cloudy?.28:L.slightly?.12:0);
-  const depth=L.strength<.4?'pale':L.strength<.75?'medium':'deep';
-  const clarity=L.cloudy?'cloudy':L.slightly?'a little cloudy':'clear';
-  $('#chips').innerHTML=[['Hue',hueName(c)],['Clarity',clarity],['Depth',depth]].map(([k,v])=>`<div class="chip"><small>${k}</small>${v}</div>`).join('');
-  const tv=tasteOf(S.blend,L);
-  $('#tastes').innerHTML=AXES.map(([k,name],i)=>{
-    const n=Math.round(tv[i]*5);
-    return `<div class="trow"><span>${name}</span><span class="pips ${k==='bitter'?'bit':''}">${[0,1,2,3,4].map(j=>`<i class="${j<n?'f':''}"></i>`).join('')}</span></div>`;
-  }).join('');
-  $('#obs-note').textContent=S.tier===3?'Trust your senses.':'Think about which ingredients make this color and taste. Remember that how you brewed changes how clear the clues are.';
+  $('#obs-cloud').setAttribute('opacity',S.look.cloudy?.28:S.look.slightly?.12:0);
+  obsStage=0; $('#obs-cards').innerHTML=''; $('#btn-guess').textContent=OBS_LABELS[0];
+  $('#obs-note').textContent='Use your senses, one at a time.';
 }
-$('#btn-guess').addEventListener('click',()=>{ Snd.tap(); toGuess(); });
+function senseCard(i){
+  const L=S.look, hint=S.tier===1;
+  if(i===0) return `<small>Smell</small><p>${aromaText(S.tea,L)}</p>`;
+  if(i===1){
+    const depth=L.strength<.4?'pale':L.strength<.75?'medium':'deep', clarity=L.cloudy?'cloudy':L.slightly?'a little cloudy':'clear';
+    return `<small>Look</small><div class="chips">${[['Hue',hueName(L.color)],['Clarity',clarity],['Depth',depth]].map(([k,v])=>`<div class="chip"><small style="display:inline;margin:0 6px 0 0">${k}</small>${v}</div>`).join('')}</div>`+(hint?'<p class="hl">Pale can mean weak. Brown can mean brewed too long.</p>':'');
+  }
+  if(i===2) return `<small>Feel</small><p>${feelText(S.tea,L)}</p>`+(hint?'<p class="hl">Dry and puckery usually means over-brewed.</p>':'');
+  return `<small>Taste</small>${wheelSVG(tasteOf(S.tea,L).map(v=>Math.round(v*4)))}`+(hint?'<p class="hl">Longer petals mean stronger flavor. Bitter comes from how you brewed, not from the tea itself.</p>':'');
+}
+$('#btn-guess').addEventListener('click',()=>{
+  Snd.tap();
+  if(obsStage<4){
+    const d=document.createElement('div'); d.className='card sense'; d.innerHTML=senseCard(obsStage);
+    $('#obs-cards').appendChild(d);
+    setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'center'}),60);
+    obsStage++; $('#btn-guess').textContent=OBS_LABELS[obsStage];
+  }else toGuess();
+});
 
 /* ---------- guess ---------- */
 function toGuess(){
   setDots(5); show('guess'); S.picks=new Set();
-  const N=S.blend.length;
-  $('#guess-sub').textContent=`This blend has ${N} ingredient${N>1?'s':''}. Choose ${N}.`;
+  const N=S.tea.dom.length;
+  $('#guess-sub').textContent=`This tea has ${N} main flavor${N>1?'s':''}. Choose ${N}. Bitterness comes from brewing, so it is not on the list.`;
   $('#guess-msg').textContent='';
   $('#btn-serve').disabled=true;
-  $('#grid').innerHTML=ING.map(g=>`<button class="ing" data-id="${g.id}" aria-pressed="false"><b>${S.tier<3?`<i class="sw" style="background:${rgb(g.rgb)}"></i>`:''}${g.name}</b><span>Tastes: ${g.guide}</span><span>Color: ${g.color}</span></button>`).join('');
+  $('#grid').innerHTML=NOTES.map(g=>`<button class="ing" data-id="${g.id}" aria-pressed="false"><b>${S.tier<3?`<i class="sw" style="background:${rgb(g.tint)}"></i>`:''}${g.name}</b><span>${g.hint}</span><span>Tends to look: ${g.look}</span></button>`).join('');
 }
 $('#grid').addEventListener('click',e=>{
   const b=e.target.closest('.ing'); if(!b) return;
-  const id=b.dataset.id, N=S.blend.length;
+  const id=b.dataset.id, N=S.tea.dom.length;
   if(S.picks.has(id)){ S.picks.delete(id); b.setAttribute('aria-pressed','false'); Snd.soft(); }
   else if(S.picks.size<N){ S.picks.add(id); b.setAttribute('aria-pressed','true'); Snd.soft(); }
   else { $('#guess-msg').textContent=`You can only pick ${N}. Tap one to unselect it.`; return; }
@@ -611,8 +696,9 @@ $('#btn-serve').addEventListener('click',()=>{ Snd.tap(); toResult(); });
 
 /* ---------- result ---------- */
 const fmt=n=>n.toFixed(1);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
 function toResult(){
-  const N=S.blend.length, ids=S.blend.map(b=>b.id);
+  const N=S.tea.dom.length, ids=S.tea.dom.map(n=>n.id);
   const correct=[...S.picks].filter(i=>ids.includes(i)).length;
   const sc={
     temp:bandScore(S.temp,IDEAL.temp,22), time:bandScore(S.steepT,IDEAL.time,45),
@@ -626,16 +712,23 @@ function toResult(){
     time:S.steepT>IDEAL.time[1]?`Steeped for ${s} seconds. Too long: the longer leaves sit, the more bitterness comes out.`:S.steepT<IDEAL.time[0]?`Steeped for ${s} seconds. Too short: the flavor had not come out yet.`:`Steeped for ${s} seconds. A good length for green tea.`,
     dose:S.leaves>IDEAL.dose[1]?`${fmt(S.leaves)} g of leaves is a lot. More leaves make the tea strong and can turn it bitter.`:S.leaves<IDEAL.dose[0]?`${fmt(S.leaves)} g of leaves is not many, so the tea was weak and watery.`:`${fmt(S.leaves)} g of leaves is a balanced amount.`,
     pour:S.level>=.99?'The cup overflowed! Too much water also dilutes the flavor.':S.level>IDEAL.level[1]?'Very full. Extra water dilutes the leaves’ flavor.':S.level<IDEAL.level[0]?'Not much water, so the tea was extra strong and concentrated.':'A graceful pour. Leaves and water are in balance.',
-    blend:correct===N?'You identified every ingredient!':correct>0?`You found ${correct} of ${N}. Your senses are getting sharper.`:'None this time. Compare the color and taste clues with the guide and try again.'
+    blend:correct===N?'You found every main flavor!':correct>0?`You found ${correct} of ${N}. Your senses are getting sharper.`:'None this time. Compare the smell, color, feel and taste clues with the guide and try again.'
   };
-  const rows=[['temp','Water heat'],['time','Steep time'],['dose','Leaves'],['pour','Pour'],['blend','Blend guess']];
+  const rows=[['temp','Water heat'],['time','Steep time'],['dose','Leaves'],['pour','Pour'],['blend','Flavor guess']];
   $('#r-rows').innerHTML=rows.map(([k,n])=>`<div class="rrow"><div class="h"><span>${n}</span><span>${Math.round(sc[k]*100)}%</span></div><div class="bar"><i data-w="${sc[k]*100}"></i></div><p>${msg[k]}</p></div>`).join('');
+  const L=S.look;
+  const dv=L.over>.45?['Too bitter','This one would be hard to enjoy. Gentler water and a shorter steep keep the sweetness in.']
+    :L.strength<.4?['A little weak','The flavor did not fully come out. A bit more time or leaves would help.']
+    :L.over>.2?['Almost there','A slight bitter edge kept it from being fully smooth.']
+    :['Delicious','Smooth, balanced and full of flavor. Brewed with care, green tea can be healthy and delicious.'];
+  $('#r-deli').innerHTML=`<small>Healthy and delicious?</small><b>${dv[0]}</b><p>${dv[1]}</p>`;
   const stars=final>=85?3:final>=60?2:1;
   $('#r-leaves').innerHTML=[1,2,3].map(i=>`<svg width="34" height="34" viewBox="-14 -14 28 28"><g transform="rotate(-35)"><path d="M-12 0C-6 -9 6 -9 12 0C6 9 -6 9 -12 0Z" fill="${i<=stars?'#6a8f4e':'#e6dec9'}"/><path d="M-12 0L12 0" stroke="rgba(40,60,40,.3)" stroke-width="1"/></g></svg>`).join('');
   $('#r-haiku').textContent=final>=85?'Steam rising softly,\nthe cup holds exactly\nwhat the leaf intended.':final>=60?'A good cup, mostly.\nThe leaves forgive small hurry.\nBrew again, slowly.':final>=30?'Bitter, or too pale,\neven this teaches something.\nBreathe, then try again.':'Water learns the leaf.\nTomorrow’s cup will be calm.\nBegin once more.';
-  $('#r-reveal').innerHTML=S.blend.map(b=>`<span class="rv ${S.picks.has(b.id)?'ok':'miss'}">${S.picks.has(b.id)?'✓ ':''}${b.name}</span>`).join('')
-    +[...S.picks].filter(i=>!ids.includes(i)).map(i=>`<span class="rv bad">${ING.find(g=>g.id===i).name}</span>`).join('');
-  $('#r-fact').innerHTML=`<b>Tea fact</b>${FACTS[Math.floor(Math.random()*FACTS.length)]}`;
+  $('#r-reveal').innerHTML=S.tea.dom.map(b=>`<span class="rv ${S.picks.has(b.id)?'ok':'miss'}">${S.picks.has(b.id)?'✓ ':''}${b.name}</span>`).join('')
+    +[...S.picks].filter(i=>!ids.includes(i)).map(i=>`<span class="rv bad">${NOTE[i].name}</span>`).join('');
+  document.querySelectorAll('.mood').forEach(m=>m.setAttribute('aria-pressed','false')); $('#mood-msg').textContent='';
+  $('#r-fact').innerHTML=`<div class="fact"><b>From the farm</b>${pick(FARM)}</div><div class="fact"><b>Why drink green tea?</b>${pick(HEALTH)}</div>`;
   const key='qc-best-'+S.tier, prev=+store.get(key)||0;
   if(final>prev) store.set(key,final);
   setDots(-1); show('result');
@@ -648,11 +741,16 @@ function toResult(){
   final>=60?Snd.success():Snd.bell(440);
   refreshBest();
 }
+$('#moods').addEventListener('click',e=>{
+  const b=e.target.closest('.mood'); if(!b) return;
+  document.querySelectorAll('.mood').forEach(m=>m.setAttribute('aria-pressed',m===b?'true':'false'));
+  $('#mood-msg').textContent=MOOD_MSG[b.dataset.m]; Snd.soft();
+});
 
 /* ---------- flow ---------- */
 function startRound(tier){
   Snd.init();
-  S={tier,step:0,leaves:0,temp:20,level:0,steepT:0,holding:false,blend:shuffle(ING).slice(0,tier),picks:new Set()};
+  S={tier,step:0,leaves:0,temp:20,level:0,steepT:0,holding:false,tea:makeTea(tier),picks:new Set()};
   $('#therm').setAttribute('height',0); $('#kettle-steam').style.opacity=0;
   pileLeaves.forEach(g=>g.style.opacity=0); drawLeaves();
   show('game'); enter(0); Snd.bell(440);
