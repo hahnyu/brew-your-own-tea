@@ -20,13 +20,19 @@ body{
 }
 #app{max-width:520px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;position:relative}
 header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;min-height:60px;flex:none}
-#dots{display:flex;gap:10px;transition:opacity .5s}
+#dots{display:flex;gap:4px;transition:opacity .5s}
 #dots.hide{opacity:0}
-.dot{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;letter-spacing:.04em;color:var(--mute);width:42px;text-transform:lowercase}
+.dot{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;letter-spacing:.02em;color:var(--mute);width:36px;text-transform:lowercase}
 .dot i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:all .4s}
 .dot.done i{background:var(--leaf)}
 .dot.on i{background:var(--leaf-d);transform:scale(1.5)}
 .dot.on{color:var(--ink)}
+#audio{display:flex;align-items:center;gap:2px}
+#vol{-webkit-appearance:none;appearance:none;width:66px;height:30px;background:transparent;margin:0;cursor:pointer;touch-action:none}
+#vol::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line)}
+#vol::-moz-range-track{height:4px;border-radius:2px;background:var(--line)}
+#vol::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--leaf-d);margin-top:-9px;border:0}
+#vol::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--leaf-d);border:0}
 #mute{width:44px;height:44px;border:0;background:transparent;border-radius:50%;color:var(--ink);cursor:pointer;display:grid;place-items:center}
 #mute:active{background:rgba(0,0,0,.05)}
 #mute .slash{display:none}
@@ -128,13 +134,15 @@ p{line-height:1.5;margin:0}
 <div id="app">
   <header>
     <div id="dots" class="hide"></div>
-    <button id="mute" aria-label="Toggle sound" title="Sound">
+    <div id="audio"><button id="mute" aria-label="Toggle sound" title="Sound">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 9h4l5-4v14l-5-4H4z"/>
         <path class="wave" d="M16.5 9a4.5 4.5 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/>
         <path class="slash" d="M16 9l5 6M21 9l-5 6"/>
       </svg>
     </button>
+    <input id="vol" type="range" min="0" max="100" step="1" aria-label="Volume">
+    </div>
   </header>
 
   <main>
@@ -328,10 +336,12 @@ const FACTS=[
 /* ---------- sound (all generated, no files) ---------- */
 const Snd=(()=>{
   let ctx,master,noise,pourN,kettleN,heatTone,heatG,muted=store.get('qc-muted')==='1',lastRustle=0;
+  let vol=store.get('qc-vol')===null?.4:clamp(+store.get('qc-vol'));
+  const level=()=>muted?0:.9*vol*vol;
   function init(){
     if(!ctx){
       const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
-      ctx=new AC(); master=ctx.createGain(); master.gain.value=muted?0:.9; master.connect(ctx.destination);
+      ctx=new AC(); master=ctx.createGain(); master.gain.value=level(); master.connect(ctx.destination);
       const len=ctx.sampleRate*2, buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0);
       for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
       noise=buf;
@@ -365,7 +375,9 @@ const Snd=(()=>{
   return{
     init,
     get muted(){return muted},
-    toggle(){ muted=!muted; store.set('qc-muted',muted?'1':'0'); init(); if(ctx) to(master.gain,muted?0:.9,.05); return muted; },
+    get vol(){return vol},
+    toggle(){ if(vol===0){ vol=.4; store.set('qc-vol',vol); muted=false; } else muted=!muted; store.set('qc-muted',muted?'1':'0'); init(); if(ctx) to(master.gain,level(),.05); return muted||vol===0; },
+    setVol(v){ vol=clamp(v); muted=false; store.set('qc-vol',vol); store.set('qc-muted','0'); init(); if(ctx) to(master.gain,level(),.03); return vol===0; },
     pour(on){ if(ctx) to(pourN.g.gain,on?.22:0,.06); },
     kettle(temp,on,heating){
       if(!ctx) return; const k=on?clamp((temp-35)/65):0;
@@ -650,8 +662,12 @@ $('#tiers').addEventListener('click',e=>{ const b=e.target.closest('.tier'); if(
 let lastTier=1;
 $('#btn-again').addEventListener('click',()=>{ Snd.tap(); startRound(lastTier); });
 $('#btn-menu').addEventListener('click',()=>{ Snd.tap(); S=null; setDots(-1); show('title'); });
-const muteBtn=$('#mute'); muteBtn.classList.toggle('off',Snd.muted);
-muteBtn.addEventListener('click',()=>{ muteBtn.classList.toggle('off',Snd.toggle()); });
+const muteBtn=$('#mute'), volEl=$('#vol');
+const syncAudioUI=()=>{ muteBtn.classList.toggle('off',Snd.muted||Snd.vol===0); volEl.value=Snd.muted?0:Math.round(Snd.vol*100); };
+syncAudioUI();
+muteBtn.addEventListener('click',()=>{ Snd.toggle(); syncAudioUI(); });
+volEl.addEventListener('input',()=>{ Snd.setVol(volEl.value/100); muteBtn.classList.toggle('off',+volEl.value===0); });
+volEl.addEventListener('change',()=>{ Snd.soft(); });
 refreshBest();
 </script>
 </body>
