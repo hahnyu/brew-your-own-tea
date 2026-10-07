@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3eee3">
+<title>Brew Your Own Tea</title>
+<style>
+:root{
+  --bg:#f3eee3; --paper:#faf7f0; --ink:#2d3a32; --mute:#6d7a70;
+  --leaf:#8fae93; --leaf-d:#4f6f5a; --accent:#c4764a; --line:#ddd4c0;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  background:radial-gradient(1100px 560px at 50% -8%,#fcfaf4,var(--bg));
+  color:var(--ink);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  overscroll-behavior:none;touch-action:manipulation;
+}
+#app{max-width:520px;height:100vh;height:100dvh;margin:0 auto;display:flex;flex-direction:column;position:relative}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;min-height:60px;flex:none}
+#dots{display:flex;gap:10px;transition:opacity .5s}
+#dots.hide{opacity:0}
+.dot{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10.5px;letter-spacing:.04em;color:var(--mute);width:42px;text-transform:lowercase}
+.dot i{width:8px;height:8px;border-radius:50%;background:var(--line);transition:all .4s}
+.dot.done i{background:var(--leaf)}
+.dot.on i{background:var(--leaf-d);transform:scale(1.5)}
+.dot.on{color:var(--ink)}
+#mute{width:44px;height:44px;border:0;background:transparent;border-radius:50%;color:var(--ink);cursor:pointer;display:grid;place-items:center}
+#mute:active{background:rgba(0,0,0,.05)}
+#mute .slash{display:none}
+#mute.off .slash{display:block}
+#mute.off .wave{display:none}
+main{flex:1;position:relative;min-height:0}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:0 18px calc(18px + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.screen.active{display:flex;animation:fade .7s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1{font-weight:400;font-size:32px;letter-spacing:.08em;line-height:1.2;margin:0;text-transform:lowercase}
+h2{font-weight:400;font-size:22px;margin:0 0 6px}
+p{line-height:1.5;margin:0}
+.sub{color:var(--mute);font-size:15px;letter-spacing:.06em}
+.btn{font:inherit;font-size:18px;min-height:56px;padding:0 24px;border-radius:999px;border:1.5px solid var(--leaf-d);background:var(--leaf-d);color:#fff;cursor:pointer;transition:transform .12s,opacity .3s,background .3s;user-select:none;-webkit-user-select:none}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--leaf-d)}
+.btn[disabled]{opacity:.35;pointer-events:none}
+.btn.hold{touch-action:none;min-height:68px;flex:1.6;background:var(--leaf-d);-webkit-touch-callout:none}
+.btn.hold.down{transform:scale(.97);background:var(--accent);border-color:var(--accent)}
+.row{display:flex;gap:10px;margin-top:14px}
+.row .btn{flex:1}
+[hidden]{display:none!important}
+
+/* title */
+#screen-title{align-items:center;text-align:center;justify-content:center;gap:18px}
+.enso{width:170px;height:170px}
+.enso circle{animation:draw 2.6s ease-out forwards}
+@keyframes draw{from{stroke-dashoffset:400}to{stroke-dashoffset:0}}
+.tiers{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:6px}
+.tier{font:inherit;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:20px;padding:14px 18px;min-height:64px;cursor:pointer;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:10px;transition:border-color .2s,transform .12s}
+.tier:active{transform:scale(.98);border-color:var(--leaf-d)}
+.tier b{font-weight:400;font-size:19px;display:block}
+.tier span{font-size:13.5px;color:var(--mute)}
+.tier em{font-style:normal;font-size:12px;color:var(--leaf-d);white-space:nowrap}
+.tiny{font-size:12.5px;color:var(--mute)}
+
+/* game */
+#screen-game{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+#scene{flex:1;min-height:0;width:100%}
+.sg{opacity:0;transition:opacity .7s;pointer-events:none}
+.sg.on{opacity:1}
+.wisp{animation:wisp 4.5s ease-in infinite;opacity:0}
+.wisp:nth-child(2){animation-delay:1.5s}
+.wisp:nth-child(3){animation-delay:3s}
+@keyframes wisp{0%{transform:translateY(10px);opacity:0}30%{opacity:.55}100%{transform:translateY(-30px);opacity:0}}
+#panel{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:16px 18px 18px;box-shadow:0 8px 30px rgba(60,70,50,.07);flex:none}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--leaf-d);margin-bottom:4px}
+#p-text{color:#46544b;font-size:15.5px}
+
+/* observe */
+.cupTop{width:min(60vw,240px);align-self:center;margin:4px 0 10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px}
+.chip{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px}
+.chip small{color:var(--mute);margin-right:6px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:12px 16px}
+.trow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:15px}
+.trow:last-child{border:0}
+.pips{display:flex;gap:6px}
+.pips i{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--leaf);transition:background .5s}
+.pips i.f{background:var(--leaf-d);border-color:var(--leaf-d)}
+.pips.bit i.f{background:var(--accent);border-color:var(--accent)}
+.spacer{flex:1;min-height:12px}
+.stick{position:sticky;bottom:0;padding-top:10px;background:linear-gradient(transparent,var(--bg) 35%)}
+
+/* guess */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.ing{font:inherit;text-align:left;background:var(--paper);border:1.5px solid var(--line);border-radius:18px;padding:12px 13px;min-height:108px;cursor:pointer;color:var(--ink);display:flex;flex-direction:column;gap:5px;transition:all .2s}
+.ing b{font-weight:400;font-size:17px;display:flex;align-items:center;gap:8px}
+.ing span{font-size:13px;color:#56635a;line-height:1.35}
+.ing .sw{width:13px;height:13px;border-radius:50%;border:1px solid rgba(0,0,0,.15);flex:none}
+.ing[aria-pressed=true]{border-color:var(--leaf-d);background:#e9f0e6;box-shadow:inset 0 0 0 1.5px var(--leaf-d)}
+#guess-msg{text-align:center;color:var(--mute);font-size:14px;min-height:20px}
+
+/* result */
+.ring{width:150px;height:150px;align-self:center;margin:2px 0 4px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-size:42px}
+.ring circle.v{transition:stroke-dashoffset 1.6s cubic-bezier(.2,.7,.2,1)}
+.leaves{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+.haiku{text-align:center;white-space:pre-line;color:var(--leaf-d);font-style:italic;margin:6px 0 14px;line-height:1.7}
+.rrow{padding:9px 0;border-bottom:1px dashed var(--line)}
+.rrow:last-child{border:0}
+.rrow .h{display:flex;justify-content:space-between;font-size:15px}
+.rrow .bar{height:6px;border-radius:3px;background:var(--line);margin:6px 0;overflow:hidden}
+.rrow .bar i{display:block;height:100%;background:var(--leaf-d);border-radius:3px;width:0;transition:width 1.2s ease}
+.rrow p{font-size:13.5px;color:#56635a}
+.reveal{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.rv{border-radius:999px;padding:6px 12px;font-size:14px;border:1.5px solid var(--line);background:var(--paper)}
+.rv.ok{border-color:var(--leaf-d);background:#e9f0e6}
+.rv.miss{border-style:dashed}
+.rv.bad{border-color:var(--accent);color:var(--accent);text-decoration:line-through}
+.fact{font-size:14px;color:#56635a;text-align:center;margin:14px 6px 4px}
+.fact b{color:var(--leaf-d);font-weight:400;letter-spacing:.1em;text-transform:uppercase;font-size:11.5px;display:block;margin-bottom:3px}
+@media (max-height:640px){h1{font-size:26px}.enso{width:110px;height:110px}}
+@media (prefers-reduced-motion:reduce){.wisp,.enso circle{animation:none}.screen.active{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div id="dots" class="hide"></div>
+    <button id="mute" aria-label="Toggle sound" title="Sound">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9h4l5-4v14l-5-4H4z"/>
+        <path class="wave" d="M16.5 9a4.5 4.5 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/>
+        <path class="slash" d="M16 9l5 6M21 9l-5 6"/>
+      </svg>
+    </button>
+  </header>
+
+  <main>
+    <!-- TITLE -->
+    <section id="screen-title" class="screen active">
+      <svg class="enso" viewBox="0 0 200 200" aria-hidden="true">
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#2d3a32" stroke-width="9" stroke-linecap="round" stroke-dasharray="400 440" stroke-dashoffset="400" transform="rotate(-70 100 100)"/>
+        <g transform="translate(100 100) rotate(-35)">
+          <path d="M-24 0C-12-22 12-22 24 0C12 22-12 22-24 0Z" fill="#8fae93"/>
+          <path d="M-24 0L24 0" stroke="#4f6f5a" stroke-width="2" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div>
+        <h1>brew your own tea</h1>
+        <p class="sub" style="margin-top:6px">a green tea brewing game</p>
+      </div>
+      <p style="max-width:330px;color:#46544b;font-size:15px">Brew a cup slowly and carefully. Then use its color and taste to work out what is in the blend.</p>
+      <div class="tiers" id="tiers">
+        <button class="tier" data-tier="1"><div><b>Gentle</b><span>1 ingredient · guides shown</span></div><em id="best1"></em></button>
+        <button class="tier" data-tier="2"><div><b>Mindful</b><span>2 ingredients · tips only</span></div><em id="best2"></em></button>
+        <button class="tier" data-tier="3"><div><b>Master</b><span>3 ingredients · no guides</span></div><em id="best3"></em></button>
+      </div>
+      <p class="tiny">Best with sound on 🔊</p>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="screen">
+      <svg id="scene" viewBox="0 0 360 300" aria-hidden="true">
+        <defs>
+          <clipPath id="cupclip"><path d="M100 128 L260 128 L247 236 Q245 250 231 250 L129 250 Q115 250 113 236 Z"/></clipPath>
+        </defs>
+
+        <!-- leaves -->
+        <g id="g-leaves" class="sg">
+          <text x="40" y="22" font-size="12" fill="#6d7a70" letter-spacing="1.5">TEA LEAVES</text>
+          <text id="leaf-read" x="320" y="22" font-size="14" fill="#2d3a32" text-anchor="end">0.0 g</text>
+          <rect x="40" y="36" width="280" height="10" rx="5" fill="#e6dec9"/>
+          <rect id="band-leaf" x="152" y="32" width="56" height="18" rx="6" fill="#8fae93" opacity=".55"/>
+          <circle id="leaf-marker" cx="40" cy="41" r="9" fill="#4f6f5a"/>
+          <ellipse cx="180" cy="244" rx="128" ry="32" fill="#e5dcc6"/>
+          <ellipse cx="180" cy="239" rx="108" ry="23" fill="#f2ecdd"/>
+          <g id="pile"></g>
+        </g>
+
+        <!-- kettle -->
+        <g id="g-kettle" class="sg">
+          <text x="40" y="22" font-size="12" fill="#6d7a70" letter-spacing="1.5">WATER HEAT</text>
+          <path d="M104 178 Q150 96 196 178" fill="none" stroke="#4b5750" stroke-width="7" stroke-linecap="round"/>
+          <path d="M198 196 Q236 190 246 154 L255 158 Q250 214 204 222 Z" fill="#5d6b61"/>
+          <ellipse cx="150" cy="208" rx="64" ry="52" fill="#5d6b61"/>
+          <ellipse cx="150" cy="160" rx="27" ry="8" fill="#4b5750"/>
+          <circle cx="150" cy="151" r="6" fill="#4b5750"/>
+          <path d="M112 196 Q150 214 188 196" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="3" stroke-linecap="round"/>
+          <g id="kettle-steam" opacity="0" transform="translate(252 140)">
+            <path class="wisp" d="M0 0 C-8 -10 8 -18 0 -30" fill="none" stroke="#9aa89c" stroke-width="3" stroke-linecap="round"/>
+            <path class="wisp" d="M10 0 C2 -10 18 -18 10 -30" fill="none" stroke="#9aa89c" stroke-width="3" stroke-linecap="round"/>
+            <path class="wisp" d="M-10 0 C-18 -10 -2 -18 -10 -30" fill="none" stroke="#9aa89c" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <rect x="290" y="70" width="18" height="190" rx="9" fill="#e6dec9"/>
+          <rect id="band-temp" x="286" y="117.5" width="26" height="23.75" rx="6" fill="#8fae93" opacity=".55"/>
+          <rect id="therm" x="290" y="260" width="18" height="0" rx="9" fill="#c4764a"/>
+          <circle cx="299" cy="262" r="13" fill="#c4764a"/>
+          <text id="temp-read" x="299" y="52" font-size="15" fill="#2d3a32" text-anchor="middle">20°C</text>
+        </g>
+
+        <!-- cup -->
+        <g id="g-cup" class="sg">
+          <text id="cup-label" x="40" y="22" font-size="12" fill="#6d7a70" letter-spacing="1.5"></text>
+          <circle id="ring" cx="180" cy="190" r="110" fill="none" stroke="#8fae93" stroke-width="1.5" opacity="0"/>
+          <ellipse cx="180" cy="258" rx="108" ry="7" fill="rgba(60,60,40,.09)"/>
+          <g clip-path="url(#cupclip)">
+            <rect id="water" x="90" y="250" width="180" height="0" fill="#c4dee8" opacity=".6"/>
+            <g id="cupleaves"></g>
+          </g>
+          <rect id="band-pour" x="104" y="152.4" width="152" height="18.3" fill="#8fae93" opacity=".28" clip-path="url(#cupclip)"/>
+          <path d="M100 128 L260 128 L247 236 Q245 250 231 250 L129 250 Q115 250 113 236 Z" fill="rgba(255,255,255,.14)" stroke="#2d3a32" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M112 140 L119 228" stroke="rgba(255,255,255,.55)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+          <g id="cup-steam" opacity="0" transform="translate(180 118)">
+            <path class="wisp" d="M0 0 C-9 -12 9 -22 0 -36" fill="none" stroke="#9aa89c" stroke-width="3" stroke-linecap="round"/>
+            <path class="wisp" d="M28 0 C19 -12 37 -22 28 -36" fill="none" stroke="#9aa89c" stroke-width="3" stroke-linecap="round"/>
+            <path class="wisp" d="M-28 0 C-37 -12 -19 -22 -28 -36" fill="none" stroke="#9aa89c" stroke-width="3" stroke-linecap="round"/>
+          </g>
+          <g id="spout" opacity="0">
+            <path id="stream" d="M180 -4 L180 150" stroke="#cfe3ea" stroke-width="5" stroke-linecap="round" opacity="0"/>
+          </g>
+          <text id="breath" x="180" y="42" font-size="15" fill="#4f6f5a" text-anchor="middle" letter-spacing="2" opacity="0"></text>
+        </g>
+      </svg>
+
+      <div id="panel">
+        <div class="kicker" id="p-kicker"></div>
+        <h2 id="p-title"></h2>
+        <p id="p-text"></p>
+        <div class="row">
+          <button class="btn hold" id="btn-hold"></button>
+          <button class="btn ghost" id="btn-next"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- OBSERVE -->
+    <section id="screen-observe" class="screen">
+      <svg class="cupTop" viewBox="0 0 200 200" aria-label="Your tea, seen from above">
+        <defs><radialGradient id="teag"><stop id="tg0" offset="0"/><stop id="tg1" offset="1"/></radialGradient></defs>
+        <circle cx="100" cy="100" r="94" fill="#faf7f0" stroke="#d9cfb7" stroke-width="3"/>
+        <circle cx="100" cy="100" r="82" fill="#eee6d3"/>
+        <circle id="obs-tea" cx="100" cy="100" r="74" fill="url(#teag)"/>
+        <circle id="obs-cloud" cx="100" cy="100" r="74" fill="#fff" opacity="0"/>
+        <ellipse cx="78" cy="72" rx="26" ry="11" fill="#fff" opacity=".22" transform="rotate(-30 78 72)"/>
+      </svg>
+      <h2 style="text-align:center">Your tea</h2>
+      <p class="sub" style="text-align:center;margin-bottom:12px">Color profile</p>
+      <div class="chips" id="chips"></div>
+      <div class="card" id="tastes"></div>
+      <p style="text-align:center;color:var(--mute);font-size:14px;margin-top:12px" id="obs-note"></p>
+      <div class="spacer"></div>
+      <div class="stick"><button class="btn" style="width:100%" id="btn-guess">Make my guess</button></div>
+    </section>
+
+    <!-- GUESS -->
+    <section id="screen-guess" class="screen">
+      <h2 id="guess-h" style="text-align:center">What is in the blend?</h2>
+      <p class="sub" id="guess-sub" style="text-align:center"></p>
+      <div class="grid" id="grid"></div>
+      <p id="guess-msg"></p>
+      <div class="spacer"></div>
+      <div class="stick"><button class="btn" style="width:100%" id="btn-serve" disabled>Serve the tea</button></div>
+    </section>
+
+    <!-- RESULT -->
+    <section id="screen-result" class="screen">
+      <div class="ring">
+        <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="#e6dec9" stroke-width="7"/><circle class="v" id="ring-v" cx="60" cy="60" r="52" fill="none" stroke="#4f6f5a" stroke-width="7" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/></svg>
+        <div class="num" id="r-num">0</div>
+      </div>
+      <div class="leaves" id="r-leaves"></div>
+      <div class="haiku" id="r-haiku"></div>
+      <div class="card" id="r-rows"></div>
+      <h2 style="margin-top:16px;text-align:center;font-size:18px">The blend was</h2>
+      <div class="reveal" id="r-reveal" style="justify-content:center"></div>
+      <div class="fact" id="r-fact"></div>
+      <div class="spacer"></div>
+      <div class="row">
+        <button class="btn ghost" id="btn-menu">Change level</button>
+        <button class="btn" id="btn-again">Brew again</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const mix=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t));
+const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+const SPEED=+new URLSearchParams(location.search).get('speed')||1;
+const svgNS='http://www.w3.org/2000/svg';
+const el=(n,a={})=>{const e=document.createElementNS(svgNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+/* ---------- data ---------- */
+const WATER=[232,238,226];
+const AMBER=[169,112,31];
+const IDEAL={temp:[70,80],time:[45,75],dose:[2,3],level:[.65,.8]};
+const AXES=[['grassy','Grassy'],['sweet','Sweet / savory'],['floral','Floral'],['toasty','Toasty'],['fresh','Cool / minty'],['tart','Citrus tart'],['bitter','Bitter']];
+const ING=[
+  {id:'sencha',name:'Sencha',rgb:[155,191,90],taste:{grassy:.9,sweet:.35,fresh:.3},guide:'Fresh-cut grass with a hint of the sea.',color:'bright yellow-green'},
+  {id:'gyokuro',name:'Gyokuro',rgb:[104,156,74],taste:{sweet:.95,grassy:.5,fresh:.15},guide:'Very sweet and savory, like a light broth.',color:'deep jade green'},
+  {id:'genmai',name:'Genmaicha',rgb:[206,196,96],taste:{toasty:.9,grassy:.35,sweet:.25},guide:'Toasted rice, a bit like popcorn.',color:'golden green'},
+  {id:'hoji',name:'Hojicha',rgb:[176,122,69],taste:{toasty:1,sweet:.5},guide:'Roasted and smoky, with caramel.',color:'amber brown'},
+  {id:'jasmine',name:'Jasmine',rgb:[232,226,138],taste:{floral:1,sweet:.4,grassy:.15},guide:'Flowery, like a perfume.',color:'pale yellow'},
+  {id:'mint',name:'Mint',rgb:[190,226,196],taste:{fresh:1,grassy:.2},guide:'Cool and sharp, tingles a little.',color:'clear, pale green'},
+  {id:'lemon',name:'Lemon peel',rgb:[240,229,138],taste:{tart:1,fresh:.35},guide:'Bright and sour.',color:'light yellow'},
+  {id:'matcha',name:'Matcha',rgb:[84,135,56],taste:{grassy:.55,sweet:.65},guide:'Rich and creamy. Thick, never see-through.',color:'vivid emerald, cloudy'}
+];
+const FACTS=[
+  'Green tea leaves are heated soon after picking (steamed in Japan, pan-fired in China). That stops them from turning brown.',
+  'Tea contains L-theanine, an amino acid linked to feeling calm and focused. Cooler water brings out more of it.',
+  'Catechins are the compounds that make tea taste bitter and dry. Hot water pulls out lots of them.',
+  'Gyokuro is shaded for about three weeks before picking. The shade makes the leaves sweeter.',
+  'Matcha is the whole leaf ground to powder, so you drink the leaf instead of just steeping it.',
+  'Hojicha is green tea that has been roasted. That turns it brown and gives it a toasty flavor.',
+  'Good green tea can be steeped 2 or 3 times. Each cup tastes a little different.',
+  'Green, black and oolong tea all come from one plant, Camellia sinensis. The difference is how the leaves are processed.',
+  'Jasmine tea is made by layering tea leaves with fresh jasmine blossoms so the leaves soak up the scent.'
+];
+
+/* ---------- sound (all generated, no files) ---------- */
+const Snd=(()=>{
+  let ctx,master,noise,pourN,kettleN,heatTone,heatG,muted=store.get('qc-muted')==='1',lastRustle=0;
+  function init(){
+    if(!ctx){
+      const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+      ctx=new AC(); master=ctx.createGain(); master.gain.value=muted?0:.9; master.connect(ctx.destination);
+      const len=ctx.sampleRate*2, buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0);
+      for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+      noise=buf;
+      pourN=loop(900,.9); kettleN=loop(2600,1.2);
+      const lfo=ctx.createOscillator(), lg=ctx.createGain(); lfo.frequency.value=6; lg.gain.value=280; lfo.connect(lg); lg.connect(pourN.f.frequency); lfo.start();
+      heatTone=ctx.createOscillator(); heatTone.type='sine'; heatTone.frequency.value=220; heatG=ctx.createGain(); heatG.gain.value=0; heatTone.connect(heatG); heatG.connect(master); heatTone.start();
+      ambient();
+    }
+    if(ctx.state==='suspended') ctx.resume();
+  }
+  function loop(freq,q){
+    const s=ctx.createBufferSource(); s.buffer=noise; s.loop=true;
+    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq; f.Q.value=q;
+    const g=ctx.createGain(); g.gain.value=0; s.connect(f); f.connect(g); g.connect(master); s.start(); return {g,f};
+  }
+  const to=(p,v,tc=.08)=>p.setTargetAtTime(v,ctx.currentTime,tc);
+  function tone(freq,t0,dur,type='sine',vol=.1,att=.006){
+    const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(.0001,t0); g.gain.linearRampToValueAtTime(vol,t0+att); g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur+.05);
+  }
+  function ambient(){
+    [130.81,196,261.63].forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain(), l=ctx.createOscillator(), lg=ctx.createGain();
+      o.frequency.value=f; g.gain.value=.012-i*.002; l.frequency.value=.07+i*.03; lg.gain.value=.006;
+      l.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(master); o.start(); l.start();
+    });
+    const scale=[587.33,659.25,783.99,880,1174.66];
+    (function next(){ setTimeout(()=>{ if(ctx&&!muted&&ctx.state==='running') tone(scale[Math.floor(Math.random()*scale.length)],ctx.currentTime,4,'sine',.035,.03); next(); },6000+Math.random()*7000); })();
+  }
+  return{
+    init,
+    get muted(){return muted},
+    toggle(){ muted=!muted; store.set('qc-muted',muted?'1':'0'); init(); if(ctx) to(master.gain,muted?0:.9,.05); return muted; },
+    pour(on){ if(ctx) to(pourN.g.gain,on?.22:0,.06); },
+    kettle(temp,on,heating){
+      if(!ctx) return; const k=on?clamp((temp-35)/65):0;
+      to(kettleN.g.gain,k*.12,.15); to(kettleN.f.frequency,1800+temp*30,.1);
+      to(heatG.gain,on&&heating?.025:0,.08); to(heatTone.frequency,220+(temp-20)*4.5,.05);
+    },
+    rustle(){
+      if(!ctx) return; const t=ctx.currentTime; if(t-lastRustle<.07) return; lastRustle=t;
+      const s=ctx.createBufferSource(); s.buffer=noise; const f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=3500+Math.random()*2500;
+      const g=ctx.createGain(); g.gain.setValueAtTime(.07,t); g.gain.exponentialRampToValueAtTime(.0005,t+.05);
+      s.connect(f); f.connect(g); g.connect(master); s.start(t,Math.random(),.06);
+    },
+    tap(){ if(!ctx) return; const t=ctx.currentTime; tone(420,t,.2,'triangle',.13); tone(840,t,.09,'sine',.04); },
+    soft(){ if(!ctx) return; tone(660,ctx.currentTime,.16,'sine',.06); },
+    bell(f=660){ if(!ctx) return; const t=ctx.currentTime; tone(f,t,3.2,'sine',.12); tone(f*2.76,t,1.6,'sine',.04); tone(f*5.4,t,.8,'sine',.015); },
+    success(){ if(!ctx) return; const t=ctx.currentTime; [523.25,587.33,659.25,783.99,880].forEach((f,i)=>tone(f,t+i*.2,2.2,'sine',.09)); }
+  };
+})();
+
+/* ---------- brew model ---------- */
+const bandScore=(v,[lo,hi],tol)=>Math.max(0,1-(v<lo?lo-v:v>hi?v-hi:0)/tol);
+function brewLook(temp,leaves,t,level,blend){
+  const dose=leaves*.72/Math.max(.3,level||.72);            // leaf-to-water concentration
+  const heat=clamp((temp-30)/50,0,1.3);
+  const strength=clamp(Math.pow(Math.max(dose,.05)/2.5,.6)*(1-Math.exp(-t/35))*(.55+.45*heat)/.85,0,1);
+  const over=clamp(Math.max(0,(temp-80)/20)*.5+Math.max(0,(t-75)/60)*.6+Math.max(0,(dose-3)/2)*.4,0,1);
+  const base=blend.reduce((a,b)=>[a[0]+b.rgb[0]/blend.length,a[1]+b.rgb[1]/blend.length,a[2]+b.rgb[2]/blend.length],[0,0,0]).map(Math.round);
+  const color=mix(mix(WATER,base,strength),AMBER,over*.7);
+  const matcha=blend.some(b=>b.id==='matcha');
+  return{strength,over,color,cloudy:matcha||over>.55,slightly:over>.3};
+}
+function tasteOf(blend,look){
+  const scale=1/(1+.25*(blend.length-1)), mute=.3+.7*look.strength, delicate=1-.45*look.over;
+  return AXES.map(([k])=>{
+    if(k==='bitter') return clamp(.08+look.over*.95);
+    let v=clamp(blend.reduce((s,b)=>s+(b.taste[k]||0),0)*scale)*mute;
+    if(k==='sweet'||k==='floral'||k==='fresh') v*=delicate;
+    return v;
+  });
+}
+function hsl([r,g,b]){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,l=(mx+mn)/2;let h=0;
+  if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360;}return h;}
+function hueName(c){
+  if(Math.max(...c)-Math.min(...c)<22) return 'nearly colorless';
+  const h=hsl(c);
+  return h<42?'amber brown':h<56?'golden':h<72?'yellow-green':h<95?'fresh green':h<150?'jade green':'blue-green';
+}
+
+/* ---------- state ---------- */
+let S=null, screen='title', last=0;
+const STEP_NAMES=['leaves','heat','pour','steep','taste','guess'];
+const dotsEl=$('#dots');
+dotsEl.innerHTML=STEP_NAMES.map(n=>`<div class="dot"><i></i>${n}</div>`).join('');
+function setDots(n){
+  dotsEl.classList.toggle('hide',n<0);
+  [...dotsEl.children].forEach((d,i)=>{d.classList.toggle('on',i===n);d.classList.toggle('done',i<n);});
+}
+function show(name){
+  screen=name;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id==='screen-'+name));
+  const sc=$('#screen-'+name); if(sc) sc.scrollTop=0;
+}
+
+/* ---------- scene ---------- */
+const pile=$('#pile'), cupleaves=$('#cupleaves');
+function leafShape(color){
+  const g=el('g'); g.appendChild(el('path',{d:'M-12 0C-6 -9 6 -9 12 0C6 9 -6 9 -12 0Z',fill:color}));
+  g.appendChild(el('path',{d:'M-12 0L12 0',stroke:'rgba(40,60,40,.35)','stroke-width':1}));return g;
+}
+const GREENS=['#7da05a','#6a8f4e','#8fae6b','#5d8247','#98b573'];
+const pileLeaves=[];
+for(let i=0;i<48;i++){
+  const a=Math.random()*Math.PI*2, r=Math.sqrt(Math.random());
+  const x=180+Math.cos(a)*r*82, y=236+Math.sin(a)*r*14-(1-r)*8;
+  const g=leafShape(GREENS[i%5]); g.dataset.x=x;g.dataset.y=y;g.dataset.r=Math.random()*180;
+  g.setAttribute('transform',`translate(${x} ${y}) rotate(${g.dataset.r}) scale(1.35)`); g.style.opacity=0; g.style.transition='opacity .25s';
+  pile.appendChild(g); pileLeaves.push(g);
+}
+const cupLeaves=[];
+for(let i=0;i<12;i++){
+  const g=leafShape(GREENS[i%5]); g.dataset.x=130+Math.random()*100; g.dataset.y=236+Math.random()*10; g.dataset.r=Math.random()*180; g.dataset.p=Math.random()*6;
+  cupleaves.appendChild(g); cupLeaves.push(g);
+}
+function sceneShow(...ids){ ['g-leaves','g-kettle','g-cup'].forEach(i=>$('#'+i).classList.toggle('on',ids.includes(i))); }
+
+function drawLeaves(){
+  const n=Math.floor(S.leaves*9.5);
+  pileLeaves.forEach((g,i)=>g.style.opacity=i<n?1:0);
+  $('#leaf-marker').setAttribute('cx',40+S.leaves/5*280);
+  $('#leaf-read').textContent=S.leaves.toFixed(1)+' g';
+}
+function drawTemp(){
+  const y=260-(S.temp-20)/80*190;
+  const t=$('#therm'); t.setAttribute('y',y); t.setAttribute('height',262-y);
+  $('#temp-read').textContent=Math.round(S.temp)+'°C';
+  $('#kettle-steam').style.opacity=clamp((S.temp-45)/45);
+}
+function drawCup(ts){
+  const h=S.level*122, w=$('#water');
+  w.setAttribute('y',250-h); w.setAttribute('height',h+8);
+  const n=clamp(Math.round(S.leaves*2.2),1,12), prog=S.step===3?clamp(S.steepT/60,0,1.25):0;
+  cupLeaves.forEach((g,i)=>{
+    const on=i<n&&S.step>=2;
+    g.style.opacity=on?(S.level>.08?.9:.9):0;
+    const sway=Math.sin(ts/900+ +g.dataset.p)*(6+prog*8);
+    const lift=S.step===3?Math.sin(ts/1400+ +g.dataset.p)*3*prog:0;
+    g.setAttribute('transform',`translate(${g.dataset.x} ${+g.dataset.y-lift}) rotate(${+g.dataset.r+sway}) scale(${1.1+prog*.9})`);
+  });
+}
+
+/* ---------- steps ---------- */
+const TXT=[
+  {t:'Measure the leaves',a:'Green tea needs about 2–3 grams of leaves for one cup. Hold the button to add leaves.',b:'Add the amount of leaves you think is right. Hold the button to add.'},
+  {t:'Warm the water',a:'Boiling water scorches green tea. Aim for gentle heat, about 70–80°C. It heats while you hold, and cools when you let go.',b:'Heat the water to the temperature you think is right. It cools when you let go.',c:'Warm the water. It cools when you let go.'},
+  {t:'Pour',a:'Fill the cup about three-quarters full. Leave a little room at the top.',b:'Pour the water in. Stop when it looks right.'},
+  {t:'Steep',a:'Most green tea is ready in about a minute. Watch the color. Breathe slowly. Lift the leaves when it feels right.',b:'Watch. Breathe. Lift the leaves when it feels ready.'}
+];
+const holdBtn=$('#btn-hold'), nextBtn=$('#btn-next');
+function panel(i){
+  const T=TXT[i], tier=S.tier;
+  $('#p-kicker').textContent=`Step ${i+1} of 4`;
+  $('#p-title').textContent=T.t;
+  $('#p-text').textContent=tier===1?T.a:tier===2?(T.a):(T.c||T.b);
+  if(tier===3&&!T.c) $('#p-text').textContent=T.b;
+  if(tier===2&&i===3) $('#p-text').textContent=T.b+' Green tea usually takes about a minute.';
+}
+function enter(n){
+  S.step=n; S.holding=false; holdBtn.classList.remove('down');
+  setDots(n); Snd.pour(false); if(n!==1) Snd.kettle(0,false);
+  const bands=S.tier===1;
+  $('#band-leaf').style.display=bands?'':'none';
+  $('#band-temp').style.display=bands?'':'none';
+  $('#band-pour').style.display=bands?'':'none';
+  if(n<=3) panel(n);
+  if(n===0){ sceneShow('g-leaves'); holdBtn.textContent='Hold to add leaves'; nextBtn.textContent='Enough leaves'; holdBtn.hidden=false; nextBtn.disabled=true; }
+  if(n===1){ sceneShow('g-kettle'); holdBtn.textContent='Hold to heat'; nextBtn.textContent='Use this water'; nextBtn.disabled=false; }
+  if(n===2){ sceneShow('g-cup'); $('#cup-label').textContent='POUR'; $('#water').setAttribute('fill','#c4dee8'); $('#water').setAttribute('opacity','.6'); $('#spout').style.opacity=1; $('#breath').style.opacity=0; $('#ring').style.opacity=0; holdBtn.textContent='Hold to pour'; nextBtn.textContent='Done pouring'; nextBtn.disabled=true; $('#cup-steam').style.opacity=0; }
+  if(n===3){ sceneShow('g-cup'); $('#cup-label').textContent='STEEP'; $('#spout').style.opacity=0; $('#stream').style.opacity=0; holdBtn.hidden=true; nextBtn.textContent='Lift the leaves'; nextBtn.disabled=true; S.steepT=0; Snd.bell(523.25); }
+  if(n===3){ nextBtn.style.flex='1'; } else nextBtn.style.flex='';
+  if(n!==3) holdBtn.hidden=false;
+}
+nextBtn.addEventListener('click',()=>{
+  Snd.init(); Snd.tap();
+  if(S.step<3) enter(S.step+1);
+  else toObserve();
+});
+
+/* hold button */
+function press(){ if(!S||screen!=='game') return; Snd.init(); S.holding=true; holdBtn.classList.add('down'); }
+function release(){ if(S) S.holding=false; holdBtn.classList.remove('down'); }
+holdBtn.addEventListener('pointerdown',e=>{ e.preventDefault(); try{holdBtn.setPointerCapture(e.pointerId)}catch(_){} press(); });
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>holdBtn.addEventListener(ev,release));
+holdBtn.addEventListener('contextmenu',e=>e.preventDefault());
+holdBtn.addEventListener('keydown',e=>{ if((e.key===' '||e.key==='Enter')&&!e.repeat){ e.preventDefault(); press(); }});
+holdBtn.addEventListener('keyup',e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); release(); }});
+
+/* ---------- main loop ---------- */
+function update(dt,ts){
+  if(!S||screen!=='game'){ Snd.pour(false); Snd.kettle(0,false); return; }
+  if(S.step===0){
+    if(S.holding&&S.leaves<5){ S.leaves=Math.min(5,S.leaves+dt*1.1); Snd.rustle(); }
+    if(S.leaves>.05) nextBtn.disabled=false;
+    drawLeaves();
+  }else if(S.step===1){
+    S.temp=clamp(S.temp+(S.holding?16:-2.5)*dt,20,100);
+    Snd.kettle(S.temp,true,S.holding);
+    drawTemp();
+  }else if(S.step===2){
+    const pouring=S.holding&&S.level<1;
+    if(pouring) S.level=Math.min(1,S.level+.24*dt);
+    Snd.pour(pouring);
+    const sy=250-S.level*122, st=$('#stream');
+    st.setAttribute('d',`M180 -4 L180 ${Math.max(20,sy)}`); st.style.opacity=pouring?1:0;
+    if(S.level>.05) nextBtn.disabled=false;
+    drawCup(ts);
+  }else if(S.step===3){
+    S.steepT+=dt*SPEED;
+    const look=brewLook(S.temp,S.leaves,S.steepT,S.level,S.blend);
+    const w=$('#water'); w.setAttribute('fill',rgb(look.color)); w.setAttribute('opacity','.92');
+    $('#cup-steam').style.opacity=clamp((S.temp-40)/50)*clamp(1-S.steepT/150,.15,1);
+    const ph=(ts/1000%8)/8, ring=$('#ring');
+    ring.setAttribute('r',104+26*(.5-.5*Math.cos(ph*2*Math.PI))); ring.style.opacity=.55;
+    const b=$('#breath'); b.textContent=ph<.5?'breathe in':'breathe out'; b.style.opacity=.8;
+    if(S.steepT>=8) nextBtn.disabled=false;
+    drawCup(ts);
+  }
+}
+function frame(ts){ const dt=Math.min(.05,(ts-last)/1000||0); last=ts; update(dt,ts); requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+
+/* ---------- observe ---------- */
+function toObserve(){
+  S.look=brewLook(S.temp,S.leaves,S.steepT,S.level,S.blend);
+  const L=S.look; Snd.bell(587.33);
+  setDots(4); show('observe');
+  const c=L.color;
+  $('#tg0').setAttribute('stop-color',rgb(mix(c,[255,255,255],.14)));
+  $('#tg1').setAttribute('stop-color',rgb(mix(c,[0,0,0],.08)));
+  $('#obs-cloud').setAttribute('opacity',L.cloudy?.28:L.slightly?.12:0);
+  const depth=L.strength<.4?'pale':L.strength<.75?'medium':'deep';
+  const clarity=L.cloudy?'cloudy':L.slightly?'a little cloudy':'clear';
+  $('#chips').innerHTML=[['Hue',hueName(c)],['Clarity',clarity],['Depth',depth]].map(([k,v])=>`<div class="chip"><small>${k}</small>${v}</div>`).join('');
+  const tv=tasteOf(S.blend,L);
+  $('#tastes').innerHTML=AXES.map(([k,name],i)=>{
+    const n=Math.round(tv[i]*5);
+    return `<div class="trow"><span>${name}</span><span class="pips ${k==='bitter'?'bit':''}">${[0,1,2,3,4].map(j=>`<i class="${j<n?'f':''}"></i>`).join('')}</span></div>`;
+  }).join('');
+  $('#obs-note').textContent=S.tier===3?'Trust your senses.':'Think about which ingredients make this color and taste. Remember that how you brewed changes how clear the clues are.';
+}
+$('#btn-guess').addEventListener('click',()=>{ Snd.tap(); toGuess(); });
+
+/* ---------- guess ---------- */
+function toGuess(){
+  setDots(5); show('guess'); S.picks=new Set();
+  const N=S.blend.length;
+  $('#guess-sub').textContent=`This blend has ${N} ingredient${N>1?'s':''}. Choose ${N}.`;
+  $('#guess-msg').textContent='';
+  $('#btn-serve').disabled=true;
+  $('#grid').innerHTML=ING.map(g=>`<button class="ing" data-id="${g.id}" aria-pressed="false"><b>${S.tier<3?`<i class="sw" style="background:${rgb(g.rgb)}"></i>`:''}${g.name}</b><span>Tastes: ${g.guide}</span><span>Color: ${g.color}</span></button>`).join('');
+}
+$('#grid').addEventListener('click',e=>{
+  const b=e.target.closest('.ing'); if(!b) return;
+  const id=b.dataset.id, N=S.blend.length;
+  if(S.picks.has(id)){ S.picks.delete(id); b.setAttribute('aria-pressed','false'); Snd.soft(); }
+  else if(S.picks.size<N){ S.picks.add(id); b.setAttribute('aria-pressed','true'); Snd.soft(); }
+  else { $('#guess-msg').textContent=`You can only pick ${N}. Tap one to unselect it.`; return; }
+  $('#guess-msg').textContent=`${S.picks.size} of ${N} chosen`;
+  $('#btn-serve').disabled=S.picks.size!==N;
+});
+$('#btn-serve').addEventListener('click',()=>{ Snd.tap(); toResult(); });
+
+/* ---------- result ---------- */
+const fmt=n=>n.toFixed(1);
+function toResult(){
+  const N=S.blend.length, ids=S.blend.map(b=>b.id);
+  const correct=[...S.picks].filter(i=>ids.includes(i)).length;
+  const sc={
+    temp:bandScore(S.temp,IDEAL.temp,22), time:bandScore(S.steepT,IDEAL.time,45),
+    dose:bandScore(S.leaves,IDEAL.dose,2), pour:bandScore(S.level,IDEAL.level,.3), blend:correct/N
+  };
+  const brew=.3*sc.temp+.3*sc.time+.2*sc.dose+.2*sc.pour;
+  const final=Math.round(100*(.5*brew+.5*sc.blend));
+  const t=Math.round(S.temp), s=Math.round(S.steepT);
+  const msg={
+    temp:S.temp>IDEAL.temp[1]?`Too hot (${t}°C). Very hot water pulls out catechins, the compounds that taste bitter.`:S.temp<IDEAL.temp[0]?`A bit cool (${t}°C). Cooler water extracts less, so the tea tasted thin and weak.`:`Just right (${t}°C). Gentle heat keeps the sweetness and avoids bitterness.`,
+    time:S.steepT>IDEAL.time[1]?`Steeped for ${s} seconds. Too long: the longer leaves sit, the more bitterness comes out.`:S.steepT<IDEAL.time[0]?`Steeped for ${s} seconds. Too short: the flavor had not come out yet.`:`Steeped for ${s} seconds. A good length for green tea.`,
+    dose:S.leaves>IDEAL.dose[1]?`${fmt(S.leaves)} g of leaves is a lot. More leaves make the tea strong and can turn it bitter.`:S.leaves<IDEAL.dose[0]?`${fmt(S.leaves)} g of leaves is not many, so the tea was weak and watery.`:`${fmt(S.leaves)} g of leaves is a balanced amount.`,
+    pour:S.level>=.99?'The cup overflowed! Too much water also dilutes the flavor.':S.level>IDEAL.level[1]?'Very full. Extra water dilutes the leaves’ flavor.':S.level<IDEAL.level[0]?'Not much water, so the tea was extra strong and concentrated.':'A graceful pour. Leaves and water are in balance.',
+    blend:correct===N?'You identified every ingredient!':correct>0?`You found ${correct} of ${N}. Your senses are getting sharper.`:'None this time. Compare the color and taste clues with the guide and try again.'
+  };
+  const rows=[['temp','Water heat'],['time','Steep time'],['dose','Leaves'],['pour','Pour'],['blend','Blend guess']];
+  $('#r-rows').innerHTML=rows.map(([k,n])=>`<div class="rrow"><div class="h"><span>${n}</span><span>${Math.round(sc[k]*100)}%</span></div><div class="bar"><i data-w="${sc[k]*100}"></i></div><p>${msg[k]}</p></div>`).join('');
+  const stars=final>=85?3:final>=60?2:1;
+  $('#r-leaves').innerHTML=[1,2,3].map(i=>`<svg width="34" height="34" viewBox="-14 -14 28 28"><g transform="rotate(-35)"><path d="M-12 0C-6 -9 6 -9 12 0C6 9 -6 9 -12 0Z" fill="${i<=stars?'#6a8f4e':'#e6dec9'}"/><path d="M-12 0L12 0" stroke="rgba(40,60,40,.3)" stroke-width="1"/></g></svg>`).join('');
+  $('#r-haiku').textContent=final>=85?'Steam rising softly,\nthe cup holds exactly\nwhat the leaf intended.':final>=60?'A good cup, mostly.\nThe leaves forgive small hurry.\nBrew again, slowly.':final>=30?'Bitter, or too pale,\neven this teaches something.\nBreathe, then try again.':'Water learns the leaf.\nTomorrow’s cup will be calm.\nBegin once more.';
+  $('#r-reveal').innerHTML=S.blend.map(b=>`<span class="rv ${S.picks.has(b.id)?'ok':'miss'}">${S.picks.has(b.id)?'✓ ':''}${b.name}</span>`).join('')
+    +[...S.picks].filter(i=>!ids.includes(i)).map(i=>`<span class="rv bad">${ING.find(g=>g.id===i).name}</span>`).join('');
+  $('#r-fact').innerHTML=`<b>Tea fact</b>${FACTS[Math.floor(Math.random()*FACTS.length)]}`;
+  const key='qc-best-'+S.tier, prev=+store.get(key)||0;
+  if(final>prev) store.set(key,final);
+  setDots(-1); show('result');
+  $('#r-num').textContent=final;
+  const rv=$('#ring-v'); rv.style.strokeDashoffset=326.7;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    rv.style.strokeDashoffset=326.7*(1-final/100);
+    document.querySelectorAll('#r-rows .bar i').forEach(i=>i.style.width=i.dataset.w+'%');
+  }));
+  final>=60?Snd.success():Snd.bell(440);
+  refreshBest();
+}
+
+/* ---------- flow ---------- */
+function startRound(tier){
+  Snd.init();
+  S={tier,step:0,leaves:0,temp:20,level:0,steepT:0,holding:false,blend:shuffle(ING).slice(0,tier),picks:new Set()};
+  $('#therm').setAttribute('height',0); $('#kettle-steam').style.opacity=0;
+  pileLeaves.forEach(g=>g.style.opacity=0); drawLeaves();
+  show('game'); enter(0); Snd.bell(440);
+}
+function refreshBest(){ [1,2,3].forEach(t=>{ const b=store.get('qc-best-'+t); $('#best'+t).textContent=b?`best ${b}`:''; }); }
+$('#tiers').addEventListener('click',e=>{ const b=e.target.closest('.tier'); if(b){ lastTier=+b.dataset.tier; startRound(lastTier); }});
+let lastTier=1;
+$('#btn-again').addEventListener('click',()=>{ Snd.tap(); startRound(lastTier); });
+$('#btn-menu').addEventListener('click',()=>{ Snd.tap(); S=null; setDots(-1); show('title'); });
+const muteBtn=$('#mute'); muteBtn.classList.toggle('off',Snd.muted);
+muteBtn.addEventListener('click',()=>{ muteBtn.classList.toggle('off',Snd.toggle()); });
+refreshBest();
+</script>
+</body>
+</html>
